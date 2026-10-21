@@ -14,26 +14,43 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
 <style>
-/* Layout: одна колонка, на телефоне карточка на весь экран; сверху тонкая полоса прогресса. */
-:root{--bg:#F2F4F8;--card:#FFFFFF;--ink:#101A33;--muted:#5B6784;--accent:#3050F0;--on-accent:#FFFFFF;--ok:#12805C;--ok-bg:#DDF3EA;--bad:#C42B3A;--bad-bg:#FBE3E5;--line:#D9DFEB;--soft:#E7ECF6;
+/* Дизайн: крупные «объёмные» кнопки и карточки, как в приложениях для изучения слов; одна главная краска, зелёный и красный только для ответов. */
+:root{--bg:#EEF1F8;--card:#FFFFFF;--ink:#14203D;--muted:#5E6A88;--accent:#3050F0;--accent-dk:#1F36B8;--on-accent:#FFFFFF;--ok:#12805C;--ok-dk:#0B5E42;--ok-bg:#DDF3EA;--bad:#C42B3A;--bad-dk:#8F1B27;--bad-bg:#FBE3E5;--line:#D5DCEB;--soft:#E3E8F4;--earlier:#BFCBF7;
 --sans:'Onest',system-ui,-apple-system,'Segoe UI',sans-serif;--mono:'JetBrains Mono',ui-monospace,Menlo,monospace}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0E1322;--card:#171E33;--ink:#E8ECF8;--muted:#93A0C0;--accent:#8DA2FF;--on-accent:#0E1322;--ok:#4FD1A0;--ok-bg:#123B30;--bad:#FF7A86;--bad-bg:#3F1B22;--line:#2A3350;--soft:#1F2842;color-scheme:dark}}
-:root[data-theme="dark"]{--bg:#0E1322;--card:#171E33;--ink:#E8ECF8;--muted:#93A0C0;--accent:#8DA2FF;--on-accent:#0E1322;--ok:#4FD1A0;--ok-bg:#123B30;--bad:#FF7A86;--bad-bg:#3F1B22;--line:#2A3350;--soft:#1F2842;color-scheme:dark}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0D1222;--card:#161D33;--ink:#E8ECF8;--muted:#95A2C4;--accent:#8DA2FF;--accent-dk:#5C72D8;--on-accent:#0D1222;--ok:#4FD1A0;--ok-dk:#2E9C75;--ok-bg:#123B30;--bad:#FF7A86;--bad-dk:#C14B57;--bad-bg:#3F1B22;--line:#2A3350;--soft:#1F2842;--earlier:#34417A;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0D1222;--card:#161D33;--ink:#E8ECF8;--muted:#95A2C4;--accent:#8DA2FF;--accent-dk:#5C72D8;--on-accent:#0D1222;--ok:#4FD1A0;--ok-dk:#2E9C75;--ok-bg:#123B30;--bad:#FF7A86;--bad-dk:#C14B57;--bad-bg:#3F1B22;--line:#2A3350;--soft:#1F2842;--earlier:#34417A;color-scheme:dark}
 *{box-sizing:border-box}
-body{margin:0}
-body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.5;padding-block:12px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.5;padding-block:14px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 .wrap{max-width:560px;margin:0 auto}
-header{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:16px}
-h1{font-size:20px;font-weight:600;margin:0;letter-spacing:-.01em}
+header{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:14px}
+h1{font-size:22px;font-weight:600;margin:0;letter-spacing:-.01em}
 .sync{font-size:12px;color:var(--muted);text-align:right}
-button{font:inherit;color:inherit;cursor:pointer}
-.btn{border:0;border-radius:12px;padding:14px 18px;font-weight:600;background:var(--accent);color:var(--on-accent);min-height:48px;width:100%}
-.btn.ghost{background:var(--soft);color:var(--ink)}
-.btn:focus-visible,.chip:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
-.panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:12px}
+button{font:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.btn{border:0;border-bottom:4px solid var(--accent-dk);border-radius:14px;padding:14px 18px;font-weight:600;background:var(--accent);color:var(--on-accent);min-height:52px;width:100%;letter-spacing:.01em}
+.btn:active{transform:translateY(2px);border-bottom-width:2px}
+.btn.ghost{background:var(--card);color:var(--ink);border:2px solid var(--line);border-bottom-width:4px}
+.btn:focus-visible,.chip:focus-visible,input:focus-visible,select:focus-visible,.cell:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.panel{background:var(--card);border:2px solid var(--line);border-radius:18px;padding:16px;margin-bottom:14px}
 .panel h2{font-size:13px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin:0 0 12px}
+.hero{display:flex;align-items:center;gap:18px}
+.ring{position:relative;width:116px;height:116px;flex:none}
+.ring svg{width:116px;height:116px;transform:rotate(-90deg)}
+.ring circle{fill:none;stroke-width:11;stroke-linecap:round}
+.ring .t{stroke:var(--soft)}.ring .a{stroke:var(--earlier);transition:stroke-dasharray .4s}.ring .c{stroke:var(--accent);transition:stroke-dasharray .4s}
+.ring b{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:var(--mono);font-weight:500;font-size:22px;line-height:1.1}
+.ring b small{font-family:var(--sans);font-size:11px;color:var(--muted);font-weight:400;margin-top:2px}
+.facts{display:grid;gap:8px;flex:1;min-width:0}
+.fact{display:flex;justify-content:space-between;gap:10px;font-size:15px}.fact span{color:var(--muted)}.fact b{font-family:var(--mono);font-weight:500}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:var(--muted);margin:0 0 12px}
+.legend i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.map{display:grid;grid-template-columns:repeat(auto-fill,minmax(17px,1fr));gap:3px}
+.map .lab{grid-column:1/-1;font-size:12px;color:var(--muted);margin:8px 0 2px;display:flex;justify-content:space-between}
+.cell{aspect-ratio:1;border:0;border-radius:4px;background:var(--soft);padding:0;min-width:0}
+.cell.e{background:var(--earlier)}.cell.ok{background:var(--ok)}.cell.bad{background:var(--bad)}
+.cell.nx{box-shadow:0 0 0 2px var(--accent)}
+.info{margin:10px 0 0;font-size:14px;color:var(--muted);min-height:22px}
 .rows{display:grid;gap:8px}
-.chip{display:flex;justify-content:space-between;align-items:center;gap:12px;text-align:left;border:1.5px solid var(--line);background:var(--bg);border-radius:10px;padding:12px 14px;min-height:48px;width:100%}
+.chip{display:flex;justify-content:space-between;align-items:center;gap:12px;text-align:left;border:2px solid var(--line);background:var(--card);border-radius:14px;padding:12px 14px;min-height:54px;width:100%}
 .chip[aria-pressed="true"]{border-color:var(--accent);background:var(--soft)}
 .chip b{font-family:var(--mono);font-weight:500;font-size:15px}
 .chip small{display:block;color:var(--muted);font-size:13px}
@@ -41,47 +58,57 @@ button{font:inherit;color:inherit;cursor:pointer}
 .stats dt{color:var(--muted)}.stats dd{margin:0;font-family:var(--mono);font-weight:500}
 .cnt{display:flex;align-items:center;gap:12px;margin:14px 0}
 .cnt label{color:var(--muted);font-size:15px;flex:1}
-.cnt input{width:88px;font:inherit;font-size:16px;padding:10px;border:1.5px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);text-align:center}
-.bar{height:6px;background:var(--soft);border-radius:3px;overflow:hidden;margin-bottom:16px}
-.bar i{display:block;height:100%;background:var(--accent);width:0;transition:width .25s}
+.cnt input[type=number]{width:88px;font:inherit;font-size:16px;padding:10px;border:2px solid var(--line);border-radius:12px;background:var(--bg);color:var(--ink);text-align:center}
+.bar{height:12px;background:var(--soft);border-radius:6px;overflow:hidden;margin-bottom:16px}
+.bar i{display:block;height:100%;background:var(--accent);width:0;border-radius:6px;transition:width .25s}
 .meta{display:flex;justify-content:space-between;font-size:13px;color:var(--muted);margin-bottom:8px;gap:8px;flex-wrap:wrap}
-.card{background:var(--card);border:2px solid var(--line);border-radius:16px;padding:24px 18px 18px}
+.card{background:var(--card);border:2px solid var(--line);border-bottom-width:5px;border-radius:20px;padding:26px 18px 18px}
 .card.ok{border-color:var(--ok);background:var(--ok-bg)}
 .card.bad{border-color:var(--bad);background:var(--bad-bg)}
-.ru{font-size:28px;font-weight:600;line-height:1.2;margin:4px 0 20px;overflow-wrap:anywhere;letter-spacing:-.01em}
-.card input{width:100%;font-family:var(--mono);font-size:18px;padding:14px;border:1.5px solid var(--line);border-radius:12px;background:var(--bg);color:var(--ink)}
+.ru{font-size:30px;font-weight:600;line-height:1.2;margin:4px 0 22px;overflow-wrap:anywhere;letter-spacing:-.01em}
+.card input{width:100%;font-family:var(--mono);font-size:19px;padding:15px;border:2px solid var(--line);border-radius:14px;background:var(--bg);color:var(--ink)}
 .card.ok input,.card.bad input{background:var(--card)}
 .verdict{margin:14px 0 0;min-height:48px;font-size:15px}
-.verdict b{font-family:var(--mono);font-weight:500;font-size:19px;display:block}
+.verdict b{font-family:var(--mono);font-weight:500;font-size:20px;display:block}
 .ok .verdict{color:var(--ok)}.bad .verdict{color:var(--bad)}
-.acts{display:grid;gap:8px;margin-top:14px}
+.ok .btn{background:var(--ok);border-bottom-color:var(--ok-dk);color:#fff}
+.bad .btn:not(.ghost){background:var(--bad);border-bottom-color:var(--bad-dk);color:#fff}
+.acts{display:grid;gap:10px;margin-top:14px}
 .acts.two{grid-template-columns:1fr 1fr}
-.big{font-size:44px;font-weight:600;font-family:var(--mono);margin:0}
+.big{font-size:46px;font-weight:600;font-family:var(--mono);margin:0}
 .err{display:grid;grid-template-columns:1fr auto;gap:2px 12px;padding:10px 0;border-top:1px solid var(--line)}
 .err span{color:var(--muted)}.err b{font-family:var(--mono);font-weight:500}
-.en{font-family:var(--mono);font-size:30px;font-weight:500;line-height:1.2;margin:4px 0 8px;overflow-wrap:anywhere;color:var(--accent)}
+.en{font-family:var(--mono);font-size:32px;font-weight:500;line-height:1.2;margin:4px 0 8px;overflow-wrap:anywhere;color:var(--accent)}
 .chk{display:flex;align-items:center;gap:10px;margin:0 0 14px;color:var(--ink);font-size:15px}
-.chk input{width:22px;height:22px;accent-color:var(--accent)}
+.chk input{width:24px;height:24px;accent-color:var(--accent)}
+details summary{cursor:pointer;font-size:13px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin:0 0 12px;list-style:none}
+details summary::-webkit-details-marker{display:none}
 [hidden]{display:none!important}
-@media (prefers-reduced-motion:reduce){.bar i{transition:none}}
+@media (prefers-reduced-motion:reduce){.bar i,.ring circle{transition:none}.btn:active{transform:none}}
 </style>
 </head><body>
 <div class="wrap">
 <header><h1>Диктант слов</h1><div class="sync" id="sync">загрузка…</div></header>
 
 <section id="home">
+ <div class="panel"><div class="hero">
+  <div class="ring" aria-label="Прогресс"><svg viewBox="0 0 116 116"><circle class="t" cx="58" cy="58" r="49"/><circle class="a" id="rA" cx="58" cy="58" r="49" stroke-dasharray="0 400"/><circle class="c" id="rC" cx="58" cy="58" r="49" stroke-dasharray="0 400"/></svg><b><span id="rN">0</span><small id="rS">закрыто</small></b></div>
+  <div class="facts" id="facts"></div></div></div>
+ <div class="panel"><h2>Карта списка</h2>
+  <div class="legend"><span><i style="background:var(--soft)"></i>не писал</span><span><i style="background:var(--earlier)"></i>проверялось раньше</span><span><i style="background:var(--ok)"></i>верно</span><span><i style="background:var(--bad)"></i>ошибка</span><span><i style="box-shadow:0 0 0 2px var(--accent)"></i>следующая партия</span></div>
+  <div class="map" id="map"></div><p class="info" id="info">Нажми на квадрат, чтобы увидеть слово.</p></div>
  <div class="panel"><h2>Что повторять</h2><div class="rows" id="sets"></div>
   <div class="cnt"><label for="n">Сколько слов</label><input id="n" type="number" inputmode="numeric" min="1" max="50" value="15"></div>
   <label class="chk"><input type="checkbox" id="study"> Сначала показать слова с переводом</label>
   <button class="btn" id="start">Начать</button></div>
- <div class="panel" id="voicePanel"><h2>Озвучка</h2>
+ <details class="panel" id="voicePanel"><summary>Озвучка</summary>
   <label class="chk"><input type="checkbox" id="vauto" checked> Озвучивать слова сама при показе</label>
   <div class="cnt"><label for="voice">Голос</label><select id="voice" style="max-width:60%;font:inherit;font-size:15px;padding:10px;border:1.5px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink)"></select></div>
   <div class="cnt"><label for="vvol">Громкость</label><input id="vvol" type="range" min="0.2" max="1" step="0.1" value="1" style="width:55%"></div>
   <div class="cnt"><label for="vrate">Скорость</label><input id="vrate" type="range" min="0.5" max="1.2" step="0.1" value="0.9" style="width:55%"></div>
   <button class="btn ghost" id="vtest" type="button">Проверить голос</button>
-  <p style="color:var(--muted);font-size:13px;margin:8px 0 0">Если звука нет, проверь, что на iPhone выключен беззвучный режим и добавлена громкость кнопками. Голоса получше: Настройки → Универсальный доступ → Устная речь → Голоса → English → Enhanced.</p></div>
- <div class="panel"><h2>Твой прогресс</h2><dl class="stats" id="stats"></dl>
+  <p style="color:var(--muted);font-size:13px;margin:8px 0 0">Если звука нет, проверь, что на iPhone выключен беззвучный режим и добавлена громкость кнопками. Голоса получше: Настройки → Универсальный доступ → Устная речь → Голоса → English → Enhanced.</p></details>
+ <div class="panel"><h2>Данные</h2><dl class="stats" id="stats"></dl>
   <button class="btn ghost" id="copyAll" type="button" style="margin-top:14px">Скопировать весь прогресс</button><p id="copyAllMsg" style="color:var(--muted);font-size:14px;margin:8px 0 0" aria-live="polite"></p></div>
 </section>
 
@@ -161,8 +188,34 @@ function render(){
   b.onclick=function(){curSet=s[0];var nw=(curSet==='new'||curSet==='fresh');$('study').checked=nw;$('n').value=nw?10:15;render()};box.appendChild(b)});
  var seen=0,att=0,cor=0,today=0,d0=new Date();d0.setHours(0,0,0,0);
  D.forEach(function(x){var s=stat(x.id);if(s.a){seen++;att+=s.a;cor+=s.c;if(s.t>=d0.getTime())today++}});
- var st=$('stats');st.innerHTML='';
+ renderHero();var st=$('stats');st.innerHTML='';
  [['Слов в словаре',D.length],['Писал здесь',seen],['Сегодня',today],['Верных ответов',att?Math.round(cor/att*100)+'%':'—']].forEach(function(p){var a=document.createElement('dt'),b=document.createElement('dd');a.textContent=p[0];b.textContent=p[1];st.appendChild(a);st.appendChild(b)});
+}
+function dayKey(t){var d=new Date(t);return d.getFullYear()+'-'+d.getMonth()+'-'+d.getDate()}
+function renderHero(){
+ var seen=0,closed=0,att=0,cor=0,days={},d0=new Date();d0.setHours(0,0,0,0);var today=0;
+ D.forEach(function(x){var q=stat(x.id);if(q.a){seen++;att+=q.a;cor+=q.c;if(q.s>=1)closed++;days[dayKey(q.t)]=1;if(q.t>=d0.getTime())today++}});
+ var tot=D.length,C=2*Math.PI*49;
+ $('rA').setAttribute('stroke-dasharray',(seen/tot*C)+' 400');$('rC').setAttribute('stroke-dasharray',(closed/tot*C)+' 400');
+ $('rN').textContent=closed+' / '+tot;
+ var streak=0,t=new Date();t.setHours(0,0,0,0);if(!days[dayKey(t.getTime())])t.setDate(t.getDate()-1);
+ while(days[dayKey(t.getTime())]){streak++;t.setDate(t.getDate()-1)}
+ var f=$('facts');f.innerHTML='';
+ [['Дней подряд',streak],['Сегодня слов',today],['Верных ответов',att?Math.round(cor/att*100)+'%':'—'],['Писал здесь',seen]].forEach(function(p){var r=document.createElement('div');r.className='fact';var a=document.createElement('span'),b=document.createElement('b');a.textContent=p[0];b.textContent=p[1];r.appendChild(a);r.appendChild(b);f.appendChild(r)});
+ var nxN=Math.max(1,Math.min(50,parseInt($('n').value,10)||15)),nxIds={},cnt=0;
+ D.forEach(function(x){if(cnt<nxN&&!stat(x.id).a){nxIds[x.id]=1;cnt++}});
+ var m=$('map');m.innerHTML='';var blk=null,blkC=0,blkT=0,labs=[];
+ D.forEach(function(x,i){
+  if(i%50===0){if(blk){labs.push([blk,blkC,blkT])}blk=document.createElement('div');blk.className='lab';m.appendChild(blk);blk._from=i+1;blkC=0;blkT=0}
+  var q=stat(x.id),c=document.createElement('button');c.type='button';c.className='cell';
+  if(q.a){if(q.s>=1){c.classList.add('ok');blkC++}else c.classList.add('bad')}else if(x.d)c.classList.add('e');
+  if(nxIds[x.id])c.classList.add('nx');
+  c.setAttribute('aria-label','№'+x.id);
+  c.onclick=function(){$('info').textContent='№'+x.id+' · '+x.r+' · '+(q.a?(q.s>=1?'верно в приложении':'ошибка в приложении'):(x.d?'проверялось раньше ('+x.d+')':'ещё не писал'))};
+  m.appendChild(c);blkT++;
+ });
+ if(blk)labs.push([blk,blkC,blkT]);
+ labs.forEach(function(l){var a=document.createElement('span'),b=document.createElement('span');a.textContent='Слова '+l[0]._from+'–'+(l[0]._from+l[2]-1);b.textContent=l[1]+' / '+l[2];l[0].appendChild(a);l[0].appendChild(b)});
 }
 function norm(t){return t.toLowerCase().replace(/[’`]/g,"'").replace(/\s+/g,' ').replace(/[.!?]+$/,'').trim()}
 function answers(e){var out=[norm(e)];var parts=e.split(/ \/ |, /);if(parts.length>1)parts.forEach(function(p){out.push(norm(p))});return out}
