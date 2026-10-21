@@ -284,9 +284,11 @@ function fillVoices(){var sel=$('voice'),vs=enVoices();if(!vs.length){sel.innerH
  vs.sort(function(a,b){return score(b)-score(a)});sel.innerHTML='';
  vs.forEach(function(v){var o=document.createElement('option');o.value=v.voiceURI;o.textContent=v.name+' ('+v.lang+')';sel.appendChild(o)});
  if(!V.voice||!vs.some(function(v){return v.voiceURI===V.voice}))V.voice=vs[0].voiceURI;sel.value=V.voice}
-function speak(t){try{if(!('speechSynthesis' in window))return;speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(t);u.lang='en-GB';u.rate=V.rate;u.volume=V.vol;
- var vs=enVoices().filter(function(v){return v.voiceURI===V.voice});if(vs[0]){u.voice=vs[0];u.lang=vs[0].lang}
- speechSynthesis.speak(u)}catch(e){}}
+var spT=null;
+function speak(t){try{if(!('speechSynthesis' in window))return;clearTimeout(spT);speechSynthesis.cancel();
+ spT=setTimeout(function(){try{speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(t);u.lang='en-GB';u.rate=V.rate;u.volume=V.vol;
+  var vs=enVoices().filter(function(v){return v.voiceURI===V.voice});if(vs[0]){u.voice=vs[0];u.lang=vs[0].lang}
+  speechSynthesis.speak(u)}catch(e){}},260)}catch(e){}}
 if('speechSynthesis' in window){fillVoices();try{speechSynthesis.onvoiceschanged=fillVoices}catch(e){}}
 else $('voicePanel').hidden=true;
 $('vvol').value=V.vol;$('vrate').value=V.rate;
@@ -297,7 +299,7 @@ $('vtest').onclick=function(){speak('Perhaps')};
 $('lspeak').onclick=function(){speak(st.list[st.i].e)};
 $('lprev').onclick=function(){if(st.i>0){st.i--;showStudy()}};
 $('lnext').onclick=function(){if(st.i<st.list.length-1){st.i++;showStudy()}else{begin(st.list)}};
-$('lquit').onclick=function(){try{speechSynthesis.cancel()}catch(e){}$('learn').hidden=true;$('home').hidden=false};
+$('lquit').onclick=function(){clearTimeout(spT);try{speechSynthesis.cancel()}catch(e){}$('learn').hidden=true;$('home').hidden=false};
 if(!('speechSynthesis' in window))$('lspeak').hidden=true;
 $('again').onclick=function(){begin(qs.wrong.slice())};
 $('home2').onclick=function(){$('done').hidden=true;$('home').hidden=false;render()};
