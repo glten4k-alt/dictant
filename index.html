@@ -246,7 +246,7 @@ function begin(words){
 function alert_(){$('sets').insertAdjacentHTML('beforeend','<p style="color:var(--bad);margin:8px 0 0">В этом наборе нет слов. Выбери другой.</p>')}
 function next(){
  if(!qs.queue.length){finish();return}
- qs.cur=qs.queue.shift();qs.stage='ask';qs.t0=Date.now();
+ qs.cur=qs.queue.shift();qs.stage='ask';qs.edits=0;
  var c=$('card');c.className='card';$('ru').textContent=qs.cur.r;
  var a=$('ans');a.value='';a.readOnly=false;
  $('verdict').innerHTML='';
@@ -271,13 +271,14 @@ function show(ok,given){
 function markHard(){var id=qs.cur.id,w=P.w[id];if(w){w[5]=1;w[6]=Date.now()+INT[1]*DAY;queueSave()}this.textContent='Отмечено, повтор завтра';this.disabled=true}
 function giveUp(){if(qs.stage!=='ask')return;judge(false,true)}
 function judge(ok,gaveUp){
- var id=qs.cur.id,easy=ok&&(Date.now()-qs.t0)<=8000;
+ var id=qs.cur.id,easy=ok&&qs.edits<=1;
  qs.tries[id]=(qs.tries[id]||0)+1;
  if(!ok&&!gaveUp){(qs.typed[id]=qs.typed[id]||[]).push($('ans').value.trim())}
  if(!(id in qs.first)){qs.first[id]=ok;record(id,ok,true,easy)}else{record(id,ok,false,false)}
  if(ok){qs.resolved++}else{qs.errs[id]=qs.cur;qs.queue.push(qs.cur)}
  show(ok,gaveUp);
 }
+$('ans').addEventListener('input',function(e){if(qs&&qs.stage==='ask'&&e.inputType&&e.inputType.indexOf('delete')===0)qs.edits++});
 $('card').addEventListener('submit',function(e){
  e.preventDefault();
  if(qs.stage==='ask'){var v=norm($('ans').value);if(!v){$('verdict').textContent='Сначала напиши слово или нажми «Не знаю».';return}
