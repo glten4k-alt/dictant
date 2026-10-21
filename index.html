@@ -151,8 +151,15 @@ var P={w:{}},uid=null,dbDoc=null,mode='local',saveT=null,qs=null;
 var LS='dictant-progress-v1';
 function lsGet(){try{return JSON.parse(localStorage.getItem(LS)||'null')}catch(e){return null}}
 function lsSet(o){try{localStorage.setItem(LS,JSON.stringify(o))}catch(e){}}
-function stat(id){var a=P.w[id];return a?{a:a[0],c:a[1],x:a[2],t:a[3],s:a[4]}:{a:0,c:0,x:0,t:0,s:0}}
-function record(id,ok){var s=stat(id);s.a++;if(ok){s.c++;s.s++}else{s.x++;s.s=0}P.w[id]=[s.a,s.c,s.x,Date.now(),s.s];queueSave()}
+var INT=[0,1,3,7,14,30,60],DAY=864e5;
+function stat(id){var a=P.w[id];if(!a)return{a:0,c:0,x:0,t:0,s:0,b:0,due:0};
+ var b=a[5]!==undefined?a[5]:(a[4]>=1?1:0),due=a[6]!==undefined?a[6]:(a[3]+INT[b]*DAY);
+ return{a:a[0],c:a[1],x:a[2],t:a[3],s:a[4],b:b,due:due}}
+function isDue(x){var q=stat(x.id);return q.a>0&&q.due<=Date.now()}
+function record(id,ok,first){var s=stat(id),b=s.b;
+ if(ok){if(first&&s.a===0)b=3;else if(first)b=Math.min(b+1,6);else b=1}else b=0;
+ s.a++;if(ok){s.c++;s.s++}else{s.x++;s.s=0}
+ var now=Date.now();P.w[id]=[s.a,s.c,s.x,now,s.s,b,now+INT[b]*DAY];queueSave()}
 function queueSave(){lsSet(P);clearTimeout(saveT);saveT=setTimeout(flush,500)}
 function flush(){if(!dbDoc)return;dbDoc.set({v:1,w:P.w,t:Date.now()}).then(function(){setSync()}).catch(function(){mode='local';setSync()})}
 function setSync(){$('sync').textContent=mode==='db'?'сохраняется в аккаунте':'сохраняется на этом устройстве'}
@@ -170,6 +177,7 @@ function init(){
  }).catch(function(){mode='local';setSync()});
 }
 var SETS=[
+ ['due','Пора повторить',function(x){return isDue(x)||stat(x.id).a===0},'сначала слова по расписанию, потом новые по списку'],
  ['seq','По порядку по списку',function(x){return stat(x.id).a===0},'следующие слова, которые ты ещё не писал здесь'],
  ['all','Все слова',function(x){return true},'весь словарь'],
  ['fresh','Ещё не проверялись',function(x){return !x.d&&stat(x.id).a===0},'ни разу не писал'],
@@ -178,11 +186,12 @@ var SETS=[
  ['warn','Не добитые (⚠️)',function(x){return x.st==='⚠️'},'не закрыты на письмо'],
  ['new','Новые с сайта',function(x){return x.st==='⬜'},'ни разу не показывали']
 ];
-var curSet='seq';
+var curSet='due';
 function render(){
  var box=$('sets');box.innerHTML='';
  SETS.forEach(function(s){var n=D.filter(s[2]).length;var b=document.createElement('button');b.className='chip';b.type='button';b.setAttribute('aria-pressed',s[0]===curSet);
   var l=document.createElement('span');l.innerHTML='<span></span><small></small>';l.firstChild.textContent=s[1];l.lastChild.textContent=s[3];
+  if(s[0]==='due'){var dn=D.filter(isDue).length;l.lastChild.textContent='по расписанию: '+dn+', остальное новые по списку'}
   if(s[0]==='seq'){var nx=D.filter(s[2]);if(nx.length){var cn=Math.max(1,Math.min(50,parseInt($('n').value,10)||15));l.lastChild.textContent='дальше по списку: №'+nx[0].id+' – №'+nx[Math.min(cn,nx.length)-1].id}}
   var c=document.createElement('b');c.textContent=n;b.appendChild(l);b.appendChild(c);
   b.onclick=function(){curSet=s[0];var nw=(curSet==='new'||curSet==='fresh');$('study').checked=nw;$('n').value=nw?10:15;render()};box.appendChild(b)});
@@ -263,7 +272,7 @@ function judge(ok,gaveUp){
  var id=qs.cur.id;
  qs.tries[id]=(qs.tries[id]||0)+1;
  if(!ok&&!gaveUp){(qs.typed[id]=qs.typed[id]||[]).push($('ans').value.trim())}
- if(!(id in qs.first)){qs.first[id]=ok;record(id,ok)}else{record(id,ok)}
+ if(!(id in qs.first)){qs.first[id]=ok;record(id,ok,true)}else{record(id,ok,false)}
  if(ok){qs.resolved++}else{qs.errs[id]=qs.cur;qs.queue.push(qs.cur)}
  show(ok,gaveUp);
 }
@@ -288,7 +297,11 @@ $('n').addEventListener('input',function(){render()});
 $('start').onclick=function(){
  var f=SETS.filter(function(s){return s[0]===curSet})[0][2];
  var n=Math.max(1,Math.min(50,parseInt($('n').value,10)||15));
- var words=curSet==='seq'?D.filter(f).slice(0,n):pick(D.filter(f),n);
+ var words;
+ if(curSet==='seq')words=D.filter(f).slice(0,n);
+ else if(curSet==='due'){var dl=D.filter(isDue).sort(function(a,b){var p=stat(a.id),q=stat(b.id);return p.b-q.b||p.due-q.due});
+  var un=D.filter(function(x){return stat(x.id).a===0});words=dl.concat(un).slice(0,n)}
+ else words=pick(D.filter(f),n);
  if(!words.length){alert_();return}
  if($('study').checked)study(words);else begin(words);
 };
@@ -314,9 +327,9 @@ function copyText(t,m,okText){
 }
 $('copyAll').onclick=function(){
  var d=new Date(),pad=function(n){return(n<10?'0':'')+n};
- var L=['Весь прогресс на '+pad(d.getDate())+'.'+pad(d.getMonth()+1)+'.'+d.getFullYear()+'. Формат: №, слово, попыток, верно, ошибок, последняя дата, серия верных подряд'];
+ var L=['Весь прогресс на '+pad(d.getDate())+'.'+pad(d.getMonth()+1)+'.'+d.getFullYear()+'. Формат: №, слово, попыток, верно, ошибок, последняя дата, серия верных подряд, ящик (0–6), дата следующего повтора'];
  D.forEach(function(x){var s=stat(x.id);if(!s.a)return;var t=new Date(s.t);
-  L.push('№'+x.id+' '+x.e+' | '+s.a+' | '+s.c+' | '+s.x+' | '+pad(t.getDate())+'.'+pad(t.getMonth()+1)+' | '+s.s)});
+  var dd=new Date(s.due);L.push('№'+x.id+' '+x.e+' | '+s.a+' | '+s.c+' | '+s.x+' | '+pad(t.getDate())+'.'+pad(t.getMonth()+1)+' | '+s.s+' | ящик '+s.b+' | повтор '+pad(dd.getDate())+'.'+pad(dd.getMonth()+1))});
  if(L.length===1)L.push('Пока нет ответов.');
  copyText(L.join('\n'),$('copyAllMsg'),'Скопировано. Вставь в чат с Claude.');
 };
