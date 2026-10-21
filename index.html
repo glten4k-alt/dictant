@@ -2,6 +2,13 @@
 <html lang="ru"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Диктант">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#3050F0">
 <title>Диктант слов</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -52,6 +59,9 @@ button{font:inherit;color:inherit;cursor:pointer}
 .big{font-size:44px;font-weight:600;font-family:var(--mono);margin:0}
 .err{display:grid;grid-template-columns:1fr auto;gap:2px 12px;padding:10px 0;border-top:1px solid var(--line)}
 .err span{color:var(--muted)}.err b{font-family:var(--mono);font-weight:500}
+.en{font-family:var(--mono);font-size:30px;font-weight:500;line-height:1.2;margin:4px 0 8px;overflow-wrap:anywhere;color:var(--accent)}
+.chk{display:flex;align-items:center;gap:10px;margin:0 0 14px;color:var(--ink);font-size:15px}
+.chk input{width:22px;height:22px;accent-color:var(--accent)}
 [hidden]{display:none!important}
 @media (prefers-reduced-motion:reduce){.bar i{transition:none}}
 </style>
@@ -62,8 +72,22 @@ button{font:inherit;color:inherit;cursor:pointer}
 <section id="home">
  <div class="panel"><h2>Что повторять</h2><div class="rows" id="sets"></div>
   <div class="cnt"><label for="n">Сколько слов</label><input id="n" type="number" inputmode="numeric" min="1" max="50" value="15"></div>
+  <label class="chk"><input type="checkbox" id="study"> Сначала показать слова с переводом</label>
   <button class="btn" id="start">Начать</button></div>
- <div class="panel"><h2>Твой прогресс</h2><dl class="stats" id="stats"></dl></div>
+ <div class="panel"><h2>Твой прогресс</h2><dl class="stats" id="stats"></dl>
+  <button class="btn ghost" id="copyAll" type="button" style="margin-top:14px">Скопировать весь прогресс</button><p id="copyAllMsg" style="color:var(--muted);font-size:14px;margin:8px 0 0" aria-live="polite"></p></div>
+</section>
+
+<section id="learn" hidden>
+ <div class="meta"><span id="lpos"></span><span>изучение</span></div>
+ <div class="bar"><i id="lfill"></i></div>
+ <div class="card">
+  <div class="en" id="len"></div>
+  <div class="ru" id="lru" style="margin-bottom:8px"></div>
+  <div class="acts"><button class="btn ghost" id="lspeak" type="button">Послушать</button></div>
+  <div class="acts two"><button class="btn ghost" id="lprev" type="button">Назад</button><button class="btn" id="lnext" type="button">Дальше</button></div>
+ </div>
+ <div class="acts" style="margin-top:12px"><button class="btn ghost" id="lquit" type="button">Отмена</button></div>
 </section>
 
 <section id="play" hidden>
@@ -125,7 +149,7 @@ function render(){
  SETS.forEach(function(s){var n=D.filter(s[2]).length;var b=document.createElement('button');b.className='chip';b.type='button';b.setAttribute('aria-pressed',s[0]===curSet);
   var l=document.createElement('span');l.innerHTML='<span></span><small></small>';l.firstChild.textContent=s[1];l.lastChild.textContent=s[3];
   var c=document.createElement('b');c.textContent=n;b.appendChild(l);b.appendChild(c);
-  b.onclick=function(){curSet=s[0];render()};box.appendChild(b)});
+  b.onclick=function(){curSet=s[0];var nw=(curSet==='new'||curSet==='fresh');$('study').checked=nw;$('n').value=nw?10:15;render()};box.appendChild(b)});
  var seen=0,att=0,cor=0,today=0,d0=new Date();d0.setHours(0,0,0,0);
  D.forEach(function(x){var s=stat(x.id);if(s.a){seen++;att+=s.a;cor+=s.c;if(s.t>=d0.getTime())today++}});
  var st=$('stats');st.innerHTML='';
@@ -146,7 +170,7 @@ function pick(list,n){
 function begin(words){
  if(!words.length){alert_();return}
  qs={queue:words.slice(),total:words.length,resolved:0,errs:{},first:{},typed:{},tries:{},stage:'ask',cur:null,setName:SETS.filter(function(s){return s[0]===curSet})[0][1]};
- $('home').hidden=true;$('done').hidden=true;$('play').hidden=false;next();
+ $('home').hidden=true;$('done').hidden=true;$('learn').hidden=true;$('play').hidden=false;next();
 }
 function alert_(){$('sets').insertAdjacentHTML('beforeend','<p style="color:var(--bad);margin:8px 0 0">В этом наборе нет слов. Выбери другой.</p>')}
 function next(){
@@ -201,7 +225,9 @@ function finish(){
 $('start').onclick=function(){
  var f=SETS.filter(function(s){return s[0]===curSet})[0][2];
  var n=Math.max(1,Math.min(50,parseInt($('n').value,10)||15));
- begin(pick(D.filter(f),n));
+ var words=pick(D.filter(f),n);
+ if(!words.length){alert_();return}
+ if($('study').checked)study(words);else begin(words);
 };
 function summary(){
  var d=new Date(),pad=function(n){return(n<10?'0':'')+n};
@@ -219,9 +245,37 @@ $('copy').onclick=function(){
  var fail=function(){m.textContent='';var ta=document.createElement('textarea');ta.value=t;ta.readOnly=true;ta.style.cssText='width:100%;min-height:140px;margin-top:8px;font:14px var(--mono);background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:10px';m.appendChild(document.createTextNode('Выдели текст и скопируй вручную:'));m.appendChild(ta);ta.focus();ta.select()};
  try{if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(done,fail)}else fail()}catch(e){fail()}
 };
+function copyText(t,m,okText){
+ var fail=function(){m.textContent='';var ta=document.createElement('textarea');ta.value=t;ta.readOnly=true;ta.style.cssText='width:100%;min-height:140px;margin-top:8px;font:14px var(--mono);background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:10px';m.appendChild(document.createTextNode('Выдели текст и скопируй вручную:'));m.appendChild(ta);ta.focus();ta.select()};
+ try{if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(function(){m.textContent=okText},fail)}else fail()}catch(e){fail()}
+}
+$('copyAll').onclick=function(){
+ var d=new Date(),pad=function(n){return(n<10?'0':'')+n};
+ var L=['Весь прогресс на '+pad(d.getDate())+'.'+pad(d.getMonth()+1)+'.'+d.getFullYear()+'. Формат: №, слово, попыток, верно, ошибок, последняя дата, серия верных подряд'];
+ D.forEach(function(x){var s=stat(x.id);if(!s.a)return;var t=new Date(s.t);
+  L.push('№'+x.id+' '+x.e+' | '+s.a+' | '+s.c+' | '+s.x+' | '+pad(t.getDate())+'.'+pad(t.getMonth()+1)+' | '+s.s)});
+ if(L.length===1)L.push('Пока нет ответов.');
+ copyText(L.join('\n'),$('copyAllMsg'),'Скопировано. Вставь в чат с Claude.');
+};
+var st={list:[],i:0};
+function study(words){st={list:words,i:0};$('home').hidden=true;$('learn').hidden=false;showStudy()}
+function showStudy(){var w=st.list[st.i],last=st.i===st.list.length-1;
+ $('lpos').textContent='Слово '+(st.i+1)+' из '+st.list.length;
+ $('lfill').style.width=Math.round((st.i+1)/st.list.length*100)+'%';
+ $('len').textContent=w.e;$('lru').textContent=w.r;
+ $('lnext').textContent=last?'Начать диктант':'Дальше';$('lprev').hidden=st.i===0;
+ speak(w.e);
+}
+function speak(t){try{if(!('speechSynthesis' in window))return;speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(t);u.lang='en-GB';u.rate=.9;speechSynthesis.speak(u)}catch(e){}}
+$('lspeak').onclick=function(){speak(st.list[st.i].e)};
+$('lprev').onclick=function(){if(st.i>0){st.i--;showStudy()}};
+$('lnext').onclick=function(){if(st.i<st.list.length-1){st.i++;showStudy()}else{begin(st.list)}};
+$('lquit').onclick=function(){try{speechSynthesis.cancel()}catch(e){}$('learn').hidden=true;$('home').hidden=false};
+if(!('speechSynthesis' in window))$('lspeak').hidden=true;
 $('again').onclick=function(){begin(qs.wrong.slice())};
 $('home2').onclick=function(){$('done').hidden=true;$('home').hidden=false;render()};
 $('quit').onclick=function(){if(qs&&Object.keys(qs.first).length)finish();else{$('play').hidden=true;$('home').hidden=false}};
 init();
+try{if('serviceWorker' in navigator&&location.protocol.indexOf('http')===0)navigator.serviceWorker.register('sw.js')}catch(e){}
 </script>
 </body></html>
