@@ -74,6 +74,12 @@ button{font:inherit;color:inherit;cursor:pointer}
   <div class="cnt"><label for="n">Сколько слов</label><input id="n" type="number" inputmode="numeric" min="1" max="50" value="15"></div>
   <label class="chk"><input type="checkbox" id="study"> Сначала показать слова с переводом</label>
   <button class="btn" id="start">Начать</button></div>
+ <div class="panel" id="voicePanel"><h2>Озвучка</h2>
+  <div class="cnt"><label for="voice">Голос</label><select id="voice" style="max-width:60%;font:inherit;font-size:15px;padding:10px;border:1.5px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink)"></select></div>
+  <div class="cnt"><label for="vvol">Громкость</label><input id="vvol" type="range" min="0.2" max="1" step="0.1" value="1" style="width:55%"></div>
+  <div class="cnt"><label for="vrate">Скорость</label><input id="vrate" type="range" min="0.5" max="1.2" step="0.1" value="0.9" style="width:55%"></div>
+  <button class="btn ghost" id="vtest" type="button">Проверить голос</button>
+  <p style="color:var(--muted);font-size:13px;margin:8px 0 0">Если звука нет, проверь, что на iPhone выключен беззвучный режим и добавлена громкость кнопками. Голоса получше: Настройки → Универсальный доступ → Устная речь → Голоса → English → Enhanced.</p></div>
  <div class="panel"><h2>Твой прогресс</h2><dl class="stats" id="stats"></dl>
   <button class="btn ghost" id="copyAll" type="button" style="margin-top:14px">Скопировать весь прогресс</button><p id="copyAllMsg" style="color:var(--muted);font-size:14px;margin:8px 0 0" aria-live="polite"></p></div>
 </section>
@@ -266,7 +272,25 @@ function showStudy(){var w=st.list[st.i],last=st.i===st.list.length-1;
  $('lnext').textContent=last?'Начать диктант':'Дальше';$('lprev').hidden=st.i===0;
  speak(w.e);
 }
-function speak(t){try{if(!('speechSynthesis' in window))return;speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(t);u.lang='en-GB';u.rate=.9;speechSynthesis.speak(u)}catch(e){}}
+var V={voice:'',vol:1,rate:.9};
+try{var sv=JSON.parse(localStorage.getItem('dictant-voice-v1')||'null');if(sv)V=Object.assign(V,sv)}catch(e){}
+function saveV(){try{localStorage.setItem('dictant-voice-v1',JSON.stringify(V))}catch(e){}}
+function enVoices(){try{return speechSynthesis.getVoices().filter(function(v){return /^en[-_]/i.test(v.lang)})}catch(e){return[]}}
+function score(v){var n=v.name+' '+v.voiceURI,r=0;if(/premium|enhanced|улучш/i.test(n))r+=5;if(/siri/i.test(n))r+=4;if(/en[-_]GB/i.test(v.lang))r+=2;if(/en[-_]US/i.test(v.lang))r+=1;if(/daniel|serena|samantha|karen|arthur|martha|ava|zoe/i.test(n))r+=2;if(v.localService)r+=.5;return r}
+function fillVoices(){var sel=$('voice'),vs=enVoices();if(!vs.length){sel.innerHTML='<option>по умолчанию</option>';return}
+ vs.sort(function(a,b){return score(b)-score(a)});sel.innerHTML='';
+ vs.forEach(function(v){var o=document.createElement('option');o.value=v.voiceURI;o.textContent=v.name+' ('+v.lang+')';sel.appendChild(o)});
+ if(!V.voice||!vs.some(function(v){return v.voiceURI===V.voice}))V.voice=vs[0].voiceURI;sel.value=V.voice}
+function speak(t){try{if(!('speechSynthesis' in window))return;speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(t);u.lang='en-GB';u.rate=V.rate;u.volume=V.vol;
+ var vs=enVoices().filter(function(v){return v.voiceURI===V.voice});if(vs[0]){u.voice=vs[0];u.lang=vs[0].lang}
+ speechSynthesis.speak(u)}catch(e){}}
+if('speechSynthesis' in window){fillVoices();try{speechSynthesis.onvoiceschanged=fillVoices}catch(e){}}
+else $('voicePanel').hidden=true;
+$('vvol').value=V.vol;$('vrate').value=V.rate;
+$('voice').onchange=function(){V.voice=$('voice').value;saveV();speak('Hello')};
+$('vvol').oninput=function(){V.vol=parseFloat($('vvol').value);saveV()};
+$('vrate').oninput=function(){V.rate=parseFloat($('vrate').value);saveV()};
+$('vtest').onclick=function(){speak('Perhaps')};
 $('lspeak').onclick=function(){speak(st.list[st.i].e)};
 $('lprev').onclick=function(){if(st.i>0){st.i--;showStudy()}};
 $('lnext').onclick=function(){if(st.i<st.list.length-1){st.i++;showStudy()}else{begin(st.list)}};
