@@ -156,8 +156,8 @@ function stat(id){var a=P.w[id];if(!a)return{a:0,c:0,x:0,t:0,s:0,b:0,due:0};
  var b=a[5]!==undefined?a[5]:(a[4]>=1?1:0),due=a[6]!==undefined?a[6]:(a[3]+INT[b]*DAY);
  return{a:a[0],c:a[1],x:a[2],t:a[3],s:a[4],b:b,due:due}}
 function isDue(x){var q=stat(x.id);return q.a>0&&q.due<=Date.now()}
-function record(id,ok,first){var s=stat(id),b=s.b;
- if(ok){if(first&&s.a===0)b=3;else if(first)b=Math.min(b+1,6);else b=1}else b=0;
+function record(id,ok,first,easy){var s=stat(id),b=s.b;
+ if(ok){if(first&&s.a===0)b=easy?3:1;else if(first)b=easy?Math.min(b+1,6):Math.max(b,1);else b=1}else b=0;
  s.a++;if(ok){s.c++;s.s++}else{s.x++;s.s=0}
  var now=Date.now();P.w[id]=[s.a,s.c,s.x,now,s.s,b,now+INT[b]*DAY];queueSave()}
 function queueSave(){lsSet(P);clearTimeout(saveT);saveT=setTimeout(flush,500)}
@@ -246,7 +246,7 @@ function begin(words){
 function alert_(){$('sets').insertAdjacentHTML('beforeend','<p style="color:var(--bad);margin:8px 0 0">В этом наборе нет слов. Выбери другой.</p>')}
 function next(){
  if(!qs.queue.length){finish();return}
- qs.cur=qs.queue.shift();qs.stage='ask';
+ qs.cur=qs.queue.shift();qs.stage='ask';qs.t0=Date.now();
  var c=$('card');c.className='card';$('ru').textContent=qs.cur.r;
  var a=$('ans');a.value='';a.readOnly=false;
  $('verdict').innerHTML='';
@@ -265,14 +265,16 @@ function show(ok,given){
  v.innerHTML='';var t=document.createElement('span');t.textContent=ok?'Верно':(given?'Правильно:':'Неверно. Правильно:');v.appendChild(t);
  if(!ok){var b=document.createElement('b');b.textContent=qs.cur.e;v.appendChild(b)}
  $('ans').readOnly=true;qs.stage='shown';qs.ok=ok;
- acts([[qs.queue.length||!ok?'Дальше':'Закончить','submit','']]);
+ var nextBtn=[qs.queue.length||!ok?'Дальше':'Закончить','submit',''];
+ acts(ok?[nextBtn,['Было трудно','button','ghost',markHard]]:[nextBtn]);
 }
+function markHard(){var id=qs.cur.id,w=P.w[id];if(w){w[5]=1;w[6]=Date.now()+INT[1]*DAY;queueSave()}this.textContent='Отмечено, повтор завтра';this.disabled=true}
 function giveUp(){if(qs.stage!=='ask')return;judge(false,true)}
 function judge(ok,gaveUp){
- var id=qs.cur.id;
+ var id=qs.cur.id,easy=ok&&(Date.now()-qs.t0)<=8000;
  qs.tries[id]=(qs.tries[id]||0)+1;
  if(!ok&&!gaveUp){(qs.typed[id]=qs.typed[id]||[]).push($('ans').value.trim())}
- if(!(id in qs.first)){qs.first[id]=ok;record(id,ok,true)}else{record(id,ok,false)}
+ if(!(id in qs.first)){qs.first[id]=ok;record(id,ok,true,easy)}else{record(id,ok,false,false)}
  if(ok){qs.resolved++}else{qs.errs[id]=qs.cur;qs.queue.push(qs.cur)}
  show(ok,gaveUp);
 }
