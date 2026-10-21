@@ -48,6 +48,8 @@ button{font:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:tra
 .cell{aspect-ratio:1;border:0;border-radius:4px;background:var(--soft);padding:0;min-width:0}
 .cell.e{background:var(--earlier)}.cell.ok{background:var(--ok)}.cell.bad{background:var(--bad)}
 .cell.nx{box-shadow:0 0 0 2px var(--accent)}
+.plan{margin:0 0 12px;font-size:15px;color:var(--muted)}.plan b{color:var(--ink);font-weight:600}
+.more{margin-top:16px}.more summary{margin-bottom:12px}
 .info{margin:10px 0 0;font-size:14px;color:var(--muted);min-height:22px}
 .rows{display:grid;gap:8px}
 .chip{display:flex;justify-content:space-between;align-items:center;gap:12px;text-align:left;border:2px solid var(--line);background:var(--card);border-radius:14px;padding:12px 14px;min-height:54px;width:100%}
@@ -94,13 +96,16 @@ details summary::-webkit-details-marker{display:none}
  <div class="panel"><div class="hero">
   <div class="ring" aria-label="Прогресс"><svg viewBox="0 0 116 116"><circle class="t" cx="58" cy="58" r="49"/><circle class="a" id="rA" cx="58" cy="58" r="49" stroke-dasharray="0 400"/><circle class="c" id="rC" cx="58" cy="58" r="49" stroke-dasharray="0 400"/></svg><b><span id="rN">0</span><small id="rS">закрыто</small></b></div>
   <div class="facts" id="facts"></div></div></div>
- <div class="panel"><h2>Карта списка</h2>
+ <div class="panel"><p class="plan" id="plan"></p>
+  <button class="btn" id="start">Начать</button>
+  <details class="more"><summary>Другой набор слов и настройки</summary>
+   <div class="rows" id="sets"></div>
+   <div class="cnt"><label for="n">Сколько слов</label><input id="n" type="number" inputmode="numeric" min="1" max="50" value="15"></div>
+   <label class="chk"><input type="checkbox" id="study"> Сначала показать слова с переводом</label>
+  </details></div>
+ <details class="panel"><summary>Карта списка</summary>
   <div class="legend"><span><i style="background:var(--soft)"></i>не писал</span><span><i style="background:var(--earlier)"></i>проверялось раньше</span><span><i style="background:var(--ok)"></i>верно</span><span><i style="background:var(--bad)"></i>ошибка</span><span><i style="box-shadow:0 0 0 2px var(--accent)"></i>следующая партия</span></div>
-  <div class="map" id="map"></div><p class="info" id="info">Нажми на квадрат, чтобы увидеть слово.</p></div>
- <div class="panel"><h2>Что повторять</h2><div class="rows" id="sets"></div>
-  <div class="cnt"><label for="n">Сколько слов</label><input id="n" type="number" inputmode="numeric" min="1" max="50" value="15"></div>
-  <label class="chk"><input type="checkbox" id="study"> Сначала показать слова с переводом</label>
-  <button class="btn" id="start">Начать</button></div>
+  <div class="map" id="map"></div><p class="info" id="info">Нажми на квадрат, чтобы увидеть слово.</p></details>
  <details class="panel" id="voicePanel"><summary>Озвучка</summary>
   <label class="chk"><input type="checkbox" id="vauto" checked> Озвучивать слова сама при показе</label>
   <div class="cnt"><label for="voice">Голос</label><select id="voice" style="max-width:60%;font:inherit;font-size:15px;padding:10px;border:1.5px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink)"></select></div>
@@ -108,8 +113,8 @@ details summary::-webkit-details-marker{display:none}
   <div class="cnt"><label for="vrate">Скорость</label><input id="vrate" type="range" min="0.5" max="1.2" step="0.1" value="0.9" style="width:55%"></div>
   <button class="btn ghost" id="vtest" type="button">Проверить голос</button>
   <p style="color:var(--muted);font-size:13px;margin:8px 0 0">Если звука нет, проверь, что на iPhone выключен беззвучный режим и добавлена громкость кнопками. Голоса получше: Настройки → Универсальный доступ → Устная речь → Голоса → English → Enhanced.</p></details>
- <div class="panel"><h2>Данные</h2><dl class="stats" id="stats"></dl>
-  <button class="btn ghost" id="copyAll" type="button" style="margin-top:14px">Скопировать весь прогресс</button><p id="copyAllMsg" style="color:var(--muted);font-size:14px;margin:8px 0 0" aria-live="polite"></p></div>
+ <details class="panel"><summary>Данные и прогресс</summary><dl class="stats" id="stats"></dl>
+  <button class="btn ghost" id="copyAll" type="button" style="margin-top:14px">Скопировать весь прогресс</button><p id="copyAllMsg" style="color:var(--muted);font-size:14px;margin:8px 0 0" aria-live="polite"></p></details>
 </section>
 
 <section id="learn" hidden>
@@ -201,7 +206,10 @@ function render(){
  [['Слов в словаре',D.length],['Писал здесь',seen],['Сегодня',today],['Верных ответов',att?Math.round(cor/att*100)+'%':'—']].forEach(function(p){var a=document.createElement('dt'),b=document.createElement('dd');a.textContent=p[0];b.textContent=p[1];st.appendChild(a);st.appendChild(b)});
 }
 function dayKey(t){var d=new Date(t);return d.getFullYear()+'-'+d.getMonth()+'-'+d.getDate()}
-function renderHero(){
+function updatePlan(){var nm=SETS.filter(function(x){return x[0]===curSet})[0][1],cn=Math.max(1,Math.min(50,parseInt($('n').value,10)||15));
+ $('plan').innerHTML='Набор: <b></b> · слов: <b></b>'+($('study').checked?' · с изучением':'');var bs=$('plan').getElementsByTagName('b');bs[0].textContent=nm;bs[1].textContent=cn}
+$('study').addEventListener('change',updatePlan);
+function renderHero(){updatePlan();
  var seen=0,closed=0,att=0,cor=0,days={},d0=new Date();d0.setHours(0,0,0,0);var today=0;
  D.forEach(function(x){var q=stat(x.id);if(q.a){seen++;att+=q.a;cor+=q.c;if(q.s>=1)closed++;days[dayKey(q.t)]=1;if(q.t>=d0.getTime())today++}});
  var tot=D.length,C=2*Math.PI*49;
