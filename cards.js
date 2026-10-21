@@ -23,7 +23,9 @@ function upd(){var ok=C.filter(function(o){return o.st==='ok'}).length;document.
 function chk(o){var v=norm(o.i.value);if(!v){o.k.className='k';o.m.textContent='';return}
  var r=grade(v,o.e);o.tries++;if(r.r!=='ok')o.typed.push(o.i.value.trim());
  o.st=r.r;o.k.className='k '+r.r;o.m.textContent=r.r==='ok'?'Верно':r.m;upd()}
-(window.W||[]).forEach(function(x){var k=document.createElement('div');k.className='k';
+var WL=[];try{WL=JSON.parse(root.getAttribute('data-w')||'[]')}catch(e){}
+if(!WL.length)WL=window.W||[];
+WL.forEach(function(x){var k=document.createElement('div');k.className='k';
  k.innerHTML='<div class="n"></div><div class="r"></div><input type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="по-английски"><div class="s"><span class="m"></span><button class="sh">Показать</button><span class="e"></span></div>';
  k.children[0].textContent='№'+x[0];k.children[1].textContent=x[1];
  var o={k:k,e:x[2],id:x[0],ru:x[1],i:k.querySelector('input'),m:k.querySelector('.m'),sh:k.querySelector('.e'),tries:0,typed:[],st:'',gaveUp:false};
