@@ -142,6 +142,7 @@ function init(){
  }).catch(function(){mode='local';setSync()});
 }
 var SETS=[
+ ['seq','По порядку по списку',function(x){return stat(x.id).a===0},'следующие слова, которые ты ещё не писал здесь'],
  ['all','Все слова',function(x){return true},'весь словарь'],
  ['fresh','Ещё не проверялись',function(x){return !x.d&&stat(x.id).a===0},'ни разу не писал'],
  ['hard','Трудные',function(x){return x.h||stat(x.id).x>0},'ошибался раньше или здесь'],
@@ -149,11 +150,12 @@ var SETS=[
  ['warn','Не добитые (⚠️)',function(x){return x.st==='⚠️'},'не закрыты на письмо'],
  ['new','Новые с сайта',function(x){return x.st==='⬜'},'ни разу не показывали']
 ];
-var curSet='hard';
+var curSet='seq';
 function render(){
  var box=$('sets');box.innerHTML='';
  SETS.forEach(function(s){var n=D.filter(s[2]).length;var b=document.createElement('button');b.className='chip';b.type='button';b.setAttribute('aria-pressed',s[0]===curSet);
   var l=document.createElement('span');l.innerHTML='<span></span><small></small>';l.firstChild.textContent=s[1];l.lastChild.textContent=s[3];
+  if(s[0]==='seq'){var nx=D.filter(s[2]);if(nx.length){var cn=Math.max(1,Math.min(50,parseInt($('n').value,10)||15));l.lastChild.textContent='дальше по списку: №'+nx[0].id+' – №'+nx[Math.min(cn,nx.length)-1].id}}
   var c=document.createElement('b');c.textContent=n;b.appendChild(l);b.appendChild(c);
   b.onclick=function(){curSet=s[0];var nw=(curSet==='new'||curSet==='fresh');$('study').checked=nw;$('n').value=nw?10:15;render()};box.appendChild(b)});
  var seen=0,att=0,cor=0,today=0,d0=new Date();d0.setHours(0,0,0,0);
@@ -186,7 +188,7 @@ function next(){
  var a=$('ans');a.value='';a.readOnly=false;
  $('verdict').innerHTML='';
  $('pos').textContent='Слово '+Math.min(qs.resolved+1,qs.total)+' из '+qs.total;
- var s=stat(qs.cur.id);$('tag').textContent=qs.cur.h||s.x?'трудное':(qs.cur.d||s.a?'уже проверялось':'новое');
+ var s=stat(qs.cur.id);$('tag').textContent='№'+qs.cur.id+' · '+(qs.cur.h||s.x?'трудное':(qs.cur.d||s.a?'уже проверялось':'новое'));
  $('fill').style.width=Math.round(qs.resolved/qs.total*100)+'%';
  acts([['Проверить','submit',''],['Не знаю','button','ghost',giveUp]]);
  setTimeout(function(){a.focus()},30);
@@ -228,10 +230,11 @@ function finish(){
  qs.wrong=wrong.map(function(i){return D.filter(function(x){return x.id===i})[0]});
  render();
 }
+$('n').addEventListener('input',function(){render()});
 $('start').onclick=function(){
  var f=SETS.filter(function(s){return s[0]===curSet})[0][2];
  var n=Math.max(1,Math.min(50,parseInt($('n').value,10)||15));
- var words=pick(D.filter(f),n);
+ var words=curSet==='seq'?D.filter(f).slice(0,n):pick(D.filter(f),n);
  if(!words.length){alert_();return}
  if($('study').checked)study(words);else begin(words);
 };
@@ -266,7 +269,7 @@ $('copyAll').onclick=function(){
 var st={list:[],i:0};
 function study(words){st={list:words,i:0};$('home').hidden=true;$('learn').hidden=false;showStudy()}
 function showStudy(){var w=st.list[st.i],last=st.i===st.list.length-1;
- $('lpos').textContent='Слово '+(st.i+1)+' из '+st.list.length;
+ $('lpos').textContent='Слово '+(st.i+1)+' из '+st.list.length+' · №'+w.id;
  $('lfill').style.width=Math.round((st.i+1)/st.list.length*100)+'%';
  $('len').textContent=w.e;$('lru').textContent=w.r;
  $('lnext').textContent=last?'Начать диктант':'Дальше';$('lprev').hidden=st.i===0;
