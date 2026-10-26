@@ -255,7 +255,7 @@ function renderHero(){updatePlan();renderRemind();
  labs.forEach(function(l){var a=document.createElement('span'),b=document.createElement('span');a.textContent='Слова '+l[0]._from+'–'+(l[0]._from+l[2]-1);b.textContent=l[1]+' / '+l[2];l[0].appendChild(a);l[0].appendChild(b)});
 }
 function norm(t){return t.toLowerCase().replace(/[’`]/g,"'").replace(/\s+/g,' ').replace(/[.!?]+$/,'').trim()}
-function answers(e){var out=[norm(e)];var parts=e.split(/ \/ |, /);if(parts.length>1)parts.forEach(function(p){out.push(norm(p))});return out}
+function answers(e){var out=[norm(e)];var parts=e.split(/ \/ |, /);if(parts.length>1)parts.forEach(function(p){out.push(norm(p))});var m=e.match(/^(.*?)(\S+)\/(\S+)(.*)$/);if(m){[m[1]+m[2]+m[4],m[1]+m[3]+m[4],m[1]+m[3]+'/'+m[2]+m[4],m[1]+m[2]+' or '+m[3]+m[4],m[1]+m[2]+' and '+m[3]+m[4]].forEach(function(x){out.push(norm(x))})}return out}
 function pick(list,n){
  var now=Date.now();
  var sc=list.map(function(x){var s=stat(x.id);var w=1;

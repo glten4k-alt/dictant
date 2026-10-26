@@ -14,7 +14,7 @@ var st=document.createElement('style');st.textContent=css;document.head.appendCh
 var root=document.getElementById('app')||document.body;
 root.innerHTML='<div class="t"><button id="all">Проверить все</button><button id="send">Отправить итог в чат ↗</button><span class="c" id="cnt"></span></div><div class="g" id="g"></div>';
 function norm(t){return t.toLowerCase().replace(/[’`]/g,"'").replace(/\s+/g,' ').replace(/[.!?]+$/,'').trim()}
-function answers(e){var o=[norm(e)],p=e.split(/ \/ |, /);if(p.length>1)p.forEach(function(x){o.push(norm(x))});return o}
+function answers(e){var o=[norm(e)],p=e.split(/ \/ |, /);if(p.length>1)p.forEach(function(x){o.push(norm(x))});var m=e.match(/^(.*?)(\S+)\/(\S+)(.*)$/);if(m){[m[1]+m[2]+m[4],m[1]+m[3]+m[4],m[1]+m[3]+'/'+m[2]+m[4],m[1]+m[2]+' or '+m[3]+m[4],m[1]+m[2]+' and '+m[3]+m[4]].forEach(function(x){o.push(norm(x))})}return o}
 function noArt(t){return t.replace(/\b(a|an|the)\b/g,' ').replace(/\s+/g,' ').trim()}
 function lev(a,b){var m=a.length,n=b.length,d=[],i,j;for(i=0;i<=m;i++)d[i]=[i];for(j=1;j<=n;j++)d[0][j]=j;for(i=1;i<=m;i++)for(j=1;j<=n;j++)d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+(a[i-1]===b[j-1]?0:1));return d[m][n]}
 function grade(v,e){var al=answers(e);if(al.indexOf(v)>-1)return{r:'ok'};for(var i=0;i<al.length;i++)if(noArt(v)===noArt(al[i])&&noArt(al[i]))return{r:'nr',m:'Почти: проверь артикли.'};for(var j=0;j<al.length;j++)if(al[j].length>=4&&lev(v,al[j])===1)return{r:'nr',m:'Почти: ошибка в одной букве.'};return{r:'bad',m:'Неверно'}}
