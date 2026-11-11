@@ -101,9 +101,9 @@ details summary::-webkit-details-marker{display:none}
   <div class="facts" id="facts"></div></div></div>
  <div class="panel"><p class="plan" id="remind" hidden style="color:var(--bad)"></p><p class="plan" id="plan"></p>
   <button class="btn" id="start">Начать</button>
-  <details class="more"><summary>Другой набор слов и настройки</summary>
-   <div class="rows" id="sets"></div>
-   <div class="cnt"><label for="seqFrom">Идти по списку с №</label><input id="seqFrom" type="number" inputmode="numeric" min="1" max="295" value="190"></div>
+  <details class="more"><summary>Настройки</summary>
+   <div class="rows" id="sets" hidden></div>
+   <div class="cnt" hidden><label for="seqFrom">Идти по списку с №</label><input id="seqFrom" type="number" inputmode="numeric" min="1" max="295" value="190"></div>
    <div class="cnt"><label for="n">Сколько слов</label><input id="n" type="number" inputmode="numeric" min="1" max="50" value="15"></div>
    <label class="chk"><input type="checkbox" id="study"> Сначала показать слова с переводом</label>
   </details></div>
@@ -202,14 +202,7 @@ function init(){
  }).catch(function(){mode='local';setSync()});
 }
 var SETS=[
- ['due','Пора повторить',function(x){return isDue(x)||stat(x.id).a===0},'сначала слова по расписанию, потом новые по списку'],
- ['seq','По порядку по списку',function(x){return stat(x.id).a===0&&D.indexOf(x)>=seqIdx()},'следующие слова, которые ты ещё не писал здесь'],
- ['all','Все слова',function(x){return true},'весь словарь'],
- ['fresh','Ещё не проверялись',function(x){return !x.d&&stat(x.id).a===0},'ни разу не писал'],
- ['hard','Трудные',function(x){return x.h||stat(x.id).x>0},'ошибался раньше или здесь'],
- ['mine','Ошибки из этого приложения',function(x){return stat(x.id).x>0},'ошибся здесь хотя бы раз'],
- ['warn','Не добитые (⚠️)',function(x){return x.st==='⚠️'},'не закрыты на письмо'],
- ['new','Новые с сайта',function(x){return x.st==='⬜'},'ни разу не показывали']
+ ['due','Повторить',function(x){return isDue(x)||x.st==='⚠️'||(x.st!=='⬜'&&stat(x.id).a===0)},'по расписанию, потом ⚠️ из чата, потом давно не повторённые']
 ];
 var curSet='due';
 function render(){
@@ -342,7 +335,7 @@ $('start').onclick=function(){
  var words;
  if(curSet==='seq')words=D.filter(f).slice(0,n);
  else if(curSet==='due'){var dl=D.filter(isDue).sort(function(a,b){var p=stat(a.id),q=stat(b.id);return p.b-q.b||p.due-q.due});
-  var un=D.filter(function(x){return stat(x.id).a===0});words=dl.concat(un).slice(0,n)}
+  var dk=function(x){var p=(x.d||'').split('.');return p.length>1?(+p[1])*100+(+p[0]):0};var wr=D.filter(function(x){return x.st==='⚠️'&&!isDue(x)});var un=D.filter(function(x){return x.st==='✅'&&stat(x.id).a===0}).sort(function(a,b){return dk(a)-dk(b)});words=dl.concat(wr,un).slice(0,n)}
  else words=pick(D.filter(f),n);
  if(!words.length){alert_();return}
  if($('study').checked)study(words);else begin(words);
