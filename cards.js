@@ -28,9 +28,9 @@ if(!WL.length)WL=window.W||[];
 WL.forEach(function(x){var k=document.createElement('div');k.className='k';
  k.innerHTML='<div class="n"></div><div class="r"></div><input type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="по-английски"><div class="s"><span class="m"></span><button class="sh">Показать</button><span class="e"></span></div>';
  k.children[0].textContent='№'+x[0];k.children[1].textContent=x[1];
- var o={k:k,e:x[2],id:x[0],ru:x[1],i:k.querySelector('input'),m:k.querySelector('.m'),sh:k.querySelector('.e'),tries:0,typed:[],st:'',gaveUp:false};
+ var o={k:k,e:x[2],id:x[0],ru:x[1],i:k.querySelector('input'),m:k.querySelector('.m'),sh:k.querySelector('.e'),tries:0,typed:[],st:'',gaveUp:false,peekAt:-1};
  o.i.addEventListener('keydown',function(ev){if(ev.key==='Enter')chk(o)});
- k.querySelector('.sh').onclick=function(){if(o.sh.textContent){o.sh.textContent=''}else{o.sh.textContent=x[2];o.gaveUp=true}};
+ k.querySelector('.sh').onclick=function(){if(o.sh.textContent){o.sh.textContent=''}else{o.sh.textContent=x[2];if(!o.gaveUp){o.peekAt=o.tries;o.typed.push('[смотрел]')}o.gaveUp=true}};
  g.appendChild(k);C.push(o)});
 document.getElementById('all').onclick=function(){C.forEach(chk)};
 document.getElementById('send').onclick=function(){
@@ -38,7 +38,7 @@ document.getElementById('send').onclick=function(){
  var d=new Date(),p=function(n){return(n<10?'0':'')+n};
  var L=['Итог диктанта в чате '+p(d.getDate())+'.'+p(d.getMonth()+1)+'.'+d.getFullYear()+', верно '+C.filter(function(o){return o.st==='ok'}).length+' из '+C.length+':'];
  C.forEach(function(o){var s=o.st==='ok'?(o.tries===1?'верно с 1-й попытки':'верно с '+o.tries+'-й попытки'):(o.tries?'не закрыто ('+(o.st==='nr'?'почти':'ошибка')+')':'не отвечал');
-  if(o.gaveUp)s+=', смотрел ответ';
+  if(o.gaveUp)s+=o.peekAt>0?', смотрел ответ после '+o.peekAt+'-й попытки':', смотрел ответ сразу, до попыток';
   var line='№'+o.id+' '+o.e+' ('+o.ru+'): '+s;if(o.typed.length)line+='; писал: '+o.typed.join(' | ');L.push(line)});
  if(window.sendPrompt)sendPrompt(L.join('\n'))};
 upd();
