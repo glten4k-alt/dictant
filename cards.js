@@ -1,6 +1,7 @@
 /* Карточки-диктант для чата Claude. Подключается из виджета: перед скриптом задаётся W = [["№","русское","английское"],...].
    Кнопка «Отправить итог в чат» вызывает sendPrompt (есть в виджете чата). */
 (function(){
+var AUD=["abroad", "accident", "acquaintance", "actually", "adjective", "advantage", "adverb", "agree", "although", "appear", "consequences", "cupboard", "enough", "glove"];
 var css='.g{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;padding:1rem 0}'+
 '.k{background:var(--surface-2);border:0.5px solid var(--border);border-radius:12px;padding:1rem 1.25rem}'+
 '.k.ok{border:2px solid var(--border-success);background:var(--bg-success)}'+
@@ -19,7 +20,7 @@ function pickVoice(){try{var vs=speechSynthesis.getVoices().filter(function(v){r
 try{if(window.speechSynthesis){pickVoice();speechSynthesis.onvoiceschanged=pickVoice}}catch(e){}
 var BASE=(function(){try{var c=document.currentScript&&document.currentScript.src;return c?c.replace(/cards\.js(\?.*)?$/,''):''}catch(e){return ''}})();
 function tts(t){try{if(!window.speechSynthesis)return;var u=new SpeechSynthesisUtterance(t);if(VOICE){u.voice=VOICE;u.lang=VOICE.lang}else u.lang='en-GB';u.rate=0.9;speechSynthesis.cancel();speechSynthesis.speak(u)}catch(e){}}
-function say(t,auto){if(auto&&!AUTO)return;var w=String(t).trim(),k=w.toLowerCase();if(!BASE||!/^[a-z'-]+$/.test(k)){tts(w);return}try{var au=new Audio(BASE+'audio/'+k+'.ogg'),done=false;au.onerror=function(){if(!done){done=true;tts(w)}};au.play().catch(function(){if(!done){done=true;tts(w)}})}catch(e){tts(w)}}
+function say(t,auto){if(auto&&!AUTO)return;var w=String(t).trim(),k=w.toLowerCase();if(!BASE||typeof AUD==='undefined'||AUD.indexOf(k)<0){tts(w);return}try{var au=new Audio(BASE+'audio/'+k+'.ogg'),done=false;au.onerror=function(){if(!done){done=true;tts(w)}};au.play().catch(function(){if(!done){done=true;tts(w)}})}catch(e){tts(w)}}
 function rec(){}
 function norm(t){return t.toLowerCase().replace(/[’`]/g,"'").replace(/\s+/g,' ').replace(/[.!?]+$/,'').trim()}
 function answers(e){var o=[norm(e)],p=e.split(/ \/ |, /);if(p.length>1)p.forEach(function(x){o.push(norm(x))});var m=e.match(/^(.*?)(\S+)\/(\S+)(.*)$/);if(m){[m[1]+m[2]+m[4],m[1]+m[3]+m[4],m[1]+m[3]+'/'+m[2]+m[4],m[1]+m[2]+' or '+m[3]+m[4],m[1]+m[2]+' and '+m[3]+m[4]].forEach(function(x){o.push(norm(x))})}return o}
