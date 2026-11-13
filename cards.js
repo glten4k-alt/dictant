@@ -17,10 +17,10 @@ root.innerHTML='<div class="t"><button id="all">Проверить все</butto
 var VOICE=null;
 function pickVoice(){try{var vs=speechSynthesis.getVoices().filter(function(v){return /^en[-_](GB|US)/i.test(v.lang)});var best=vs.filter(function(v){return /premium|enhanced/i.test(v.name)});VOICE=(best[0]||vs.filter(function(v){return /^en[-_]GB/i.test(v.lang)})[0]||vs[0])||null}catch(e){}}
 try{if(window.speechSynthesis){pickVoice();speechSynthesis.onvoiceschanged=pickVoice}}catch(e){}
-var AU={};
+var BASE=(function(){try{var c=document.currentScript&&document.currentScript.src;return c?c.replace(/cards\.js(\?.*)?$/,''):''}catch(e){return ''}})();
 function tts(t){try{if(!window.speechSynthesis)return;var u=new SpeechSynthesisUtterance(t);if(VOICE){u.voice=VOICE;u.lang=VOICE.lang}else u.lang='en-GB';u.rate=0.9;speechSynthesis.cancel();speechSynthesis.speak(u)}catch(e){}}
-function rec(w){w=w.toLowerCase();if(!/^[a-z'-]+$/.test(w))return Promise.resolve(null);if(w in AU)return Promise.resolve(AU[w]);return fetch('https://api.dictionaryapi.dev/api/v2/entries/en/'+encodeURIComponent(w)).then(function(r){return r.ok?r.json():[]}).then(function(d){var a=[];(d||[]).forEach(function(e){(e.phonetics||[]).forEach(function(p){if(p.audio)a.push(p.audio)})});var u=a.filter(function(x){return /-uk\.mp3$/.test(x)})[0]||a.filter(function(x){return /-us\.mp3$/.test(x)})[0]||a[0]||null;AU[w]=u;return u}).catch(function(){AU[w]=null;return null})}
-function say(t,auto){if(auto&&!AUTO)return;var w=String(t).trim();rec(w).then(function(u){if(!u){tts(w);return}try{var au=new Audio(u);au.play().catch(function(){tts(w)})}catch(e){tts(w)}})}
+function say(t,auto){if(auto&&!AUTO)return;var w=String(t).trim(),k=w.toLowerCase();if(!BASE||!/^[a-z'-]+$/.test(k)){tts(w);return}try{var au=new Audio(BASE+'audio/'+k+'.ogg'),done=false;au.onerror=function(){if(!done){done=true;tts(w)}};au.play().catch(function(){if(!done){done=true;tts(w)}})}catch(e){tts(w)}}
+function rec(){}
 function norm(t){return t.toLowerCase().replace(/[’`]/g,"'").replace(/\s+/g,' ').replace(/[.!?]+$/,'').trim()}
 function answers(e){var o=[norm(e)],p=e.split(/ \/ |, /);if(p.length>1)p.forEach(function(x){o.push(norm(x))});var m=e.match(/^(.*?)(\S+)\/(\S+)(.*)$/);if(m){[m[1]+m[2]+m[4],m[1]+m[3]+m[4],m[1]+m[3]+'/'+m[2]+m[4],m[1]+m[2]+' or '+m[3]+m[4],m[1]+m[2]+' and '+m[3]+m[4]].forEach(function(x){o.push(norm(x))})}return o}
 function noArt(t){return t.replace(/\b(a|an|the)\b/g,' ').replace(/\s+/g,' ').trim()}
