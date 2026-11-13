@@ -12,9 +12,9 @@ var css='.g{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr)
 '.fam{background:var(--surface-2);border:0.5px solid var(--border);border-radius:12px;padding:1rem 1.25rem;display:flex;flex-direction:column;gap:6px}.fh{font-size:12px;color:var(--text-muted)}.fam .n{display:none}.fam .k{padding:.5rem .6rem;border-radius:10px}.fam .k:not(.ok):not(.nr):not(.bad){background:none;border-color:transparent}.fam .r{font-size:15px;margin:0 0 6px}.fam .s{margin-top:4px;min-height:0}'+
 '.e{font-weight:500;color:var(--text-accent)}.t{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.c{font-size:13px;color:var(--text-muted)}';
 var st=document.createElement('style');st.textContent=css;document.head.appendChild(st);
-var root=document.getElementById('app')||document.body;AUTO=root.getAttribute&&root.getAttribute('data-sound')==='1';
+var root=document.getElementById('app')||document.body;var AUTO=!!(root.getAttribute&&root.getAttribute('data-sound')==='1');
 root.innerHTML='<div class="t"><button id="all">Проверить все</button><button id="send">Отправить итог в чат ↗</button><span class="c" id="cnt"></span></div><div class="g" id="g"></div>';
-var AUTO=false,VOICE=null;
+var VOICE=null;
 function pickVoice(){try{var vs=speechSynthesis.getVoices().filter(function(v){return /^en[-_](GB|US)/i.test(v.lang)});var best=vs.filter(function(v){return /premium|enhanced/i.test(v.name)});VOICE=(best[0]||vs.filter(function(v){return /^en[-_]GB/i.test(v.lang)})[0]||vs[0])||null}catch(e){}}
 try{if(window.speechSynthesis){pickVoice();speechSynthesis.onvoiceschanged=pickVoice}}catch(e){}
 function say(t,auto){if(auto&&!AUTO)return;try{if(!window.speechSynthesis)return;var u=new SpeechSynthesisUtterance(t);if(VOICE){u.voice=VOICE;u.lang=VOICE.lang}else u.lang='en-GB';u.rate=0.9;speechSynthesis.cancel();speechSynthesis.speak(u)}catch(e){}}
