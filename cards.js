@@ -19,7 +19,7 @@ var VOICE=null;
 function pickVoice(){try{var vs=speechSynthesis.getVoices().filter(function(v){return /^en[-_](GB|US)/i.test(v.lang)});var best=vs.filter(function(v){return /premium|enhanced/i.test(v.name)});VOICE=(best[0]||vs.filter(function(v){return /^en[-_]GB/i.test(v.lang)})[0]||vs[0])||null}catch(e){}}
 try{if(window.speechSynthesis){pickVoice();speechSynthesis.onvoiceschanged=pickVoice}}catch(e){}
 var BASE=(function(){try{var c=document.currentScript&&document.currentScript.src;return c?c.replace(/cards\.js(\?.*)?$/,''):''}catch(e){return ''}})();
-function tts(t){try{if(!window.speechSynthesis)return;var u=new SpeechSynthesisUtterance(t);if(VOICE){u.voice=VOICE;u.lang=VOICE.lang}else u.lang='en-GB';u.rate=0.9;speechSynthesis.cancel();speechSynthesis.speak(u)}catch(e){}}
+function tts(t){try{if(!window.speechSynthesis)return;var u=new SpeechSynthesisUtterance(t);if(VOICE){u.voice=VOICE;u.lang=VOICE.lang}u.rate=0.9;speechSynthesis.cancel();speechSynthesis.speak(u)}catch(e){}}
 function say(t,auto){if(auto&&!AUTO)return;var w=String(t).trim(),k=w.toLowerCase();if(!BASE||typeof AUD==='undefined'||AUD.indexOf(k)<0){tts(w);return}try{var au=new Audio(BASE+'audio/'+k+'.ogg'),done=false;au.onerror=function(){if(!done){done=true;tts(w)}};au.play().catch(function(){if(!done){done=true;tts(w)}})}catch(e){tts(w)}}
 function rec(){}
 function norm(t){return t.toLowerCase().replace(/[’`]/g,"'").replace(/\s+/g,' ').replace(/[.!?]+$/,'').trim()}
