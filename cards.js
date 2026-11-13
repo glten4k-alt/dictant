@@ -14,6 +14,7 @@ var css='.g{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr)
 var st=document.createElement('style');st.textContent=css;document.head.appendChild(st);
 var root=document.getElementById('app')||document.body;
 root.innerHTML='<div class="t"><button id="all">Проверить все</button><button id="send">Отправить итог в чат ↗</button><span class="c" id="cnt"></span></div><div class="g" id="g"></div>';
+function say(t){try{if(!window.speechSynthesis)return;var u=new SpeechSynthesisUtterance(t);u.lang='en-GB';u.rate=0.9;speechSynthesis.cancel();speechSynthesis.speak(u)}catch(e){}}
 function norm(t){return t.toLowerCase().replace(/[’`]/g,"'").replace(/\s+/g,' ').replace(/[.!?]+$/,'').trim()}
 function answers(e){var o=[norm(e)],p=e.split(/ \/ |, /);if(p.length>1)p.forEach(function(x){o.push(norm(x))});var m=e.match(/^(.*?)(\S+)\/(\S+)(.*)$/);if(m){[m[1]+m[2]+m[4],m[1]+m[3]+m[4],m[1]+m[3]+'/'+m[2]+m[4],m[1]+m[2]+' or '+m[3]+m[4],m[1]+m[2]+' and '+m[3]+m[4]].forEach(function(x){o.push(norm(x))})}return o}
 function noArt(t){return t.replace(/\b(a|an|the)\b/g,' ').replace(/\s+/g,' ').trim()}
@@ -23,15 +24,16 @@ var g=document.getElementById('g'),C=[];
 function upd(){var ok=C.filter(function(o){return o.st==='ok'}).length;document.getElementById('cnt').textContent='Верно: '+ok+' из '+C.length}
 function chk(o){var v=norm(o.i.value);if(!v){o.k.className='k';o.m.textContent='';return}
  var r=grade(v,o.e);o.tries++;if(r.r!=='ok')o.typed.push(o.i.value.trim());
- o.st=r.r;o.k.className='k '+r.r;o.m.textContent=r.r==='ok'?'Верно':r.m;upd()}
+ o.st=r.r;o.k.className='k '+r.r;if(r.r==='ok')say(o.e);o.m.textContent=r.r==='ok'?'Верно':r.m;upd()}
 var WL=[];try{WL=JSON.parse(root.getAttribute('data-w')||'[]')}catch(e){}
 if(!WL.length)WL=window.W||[];
 function mk(x,par){var k=document.createElement('div');k.className='k';
- k.innerHTML='<div class="n"></div><div class="r"></div><input type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="по-английски"><div class="s"><span class="m"></span><button class="sh">Показать</button><span class="e"></span></div>';
+ k.innerHTML='<div class="n"></div><div class="r"></div><input type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="по-английски"><div class="s"><span class="m"></span><button class="sh">Показать</button><button class="sp" title="Произнести">🔊</button><span class="e"></span></div>';
  k.children[0].textContent='№'+x[0];k.children[1].textContent=x[1];
  var o={k:k,e:x[2],id:x[0],ru:x[1],i:k.querySelector('input'),m:k.querySelector('.m'),sh:k.querySelector('.e'),tries:0,typed:[],st:'',gaveUp:false,peekAt:-1};
  o.i.addEventListener('keydown',function(ev){if(ev.key==='Enter')chk(o)});
- k.querySelector('.sh').onclick=function(){if(o.sh.textContent){o.sh.textContent=''}else{o.sh.textContent=x[2];if(!o.gaveUp){o.peekAt=o.tries;o.typed.push('[смотрел]')}o.gaveUp=true}};
+ k.querySelector('.sp').onclick=function(){say(x[2])};
+ k.querySelector('.sh').onclick=function(){if(o.sh.textContent){o.sh.textContent=''}else{o.sh.textContent=x[2];say(x[2]);if(!o.gaveUp){o.peekAt=o.tries;o.typed.push('[смотрел]')}o.gaveUp=true}};
  par.appendChild(k);C.push(o)}
 WL.forEach(function(x){if(Array.isArray(x[2])){var f=document.createElement('div');f.className='fam';var h=document.createElement('div');h.className='fh';h.textContent='№'+x[0]+' · семья слов';f.appendChild(h);x[2].forEach(function(e,j){mk([x[0]+'.'+(j+1),x[1][j],e],f)});g.appendChild(f)}else mk(x,g)});
 document.getElementById('all').onclick=function(){C.forEach(chk)};
