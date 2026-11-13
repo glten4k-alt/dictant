@@ -1,7 +1,7 @@
 /* Карточки-диктант для чата Claude. Подключается из виджета: перед скриптом задаётся W = [["№","русское","английское"],...].
    Кнопка «Отправить итог в чат» вызывает sendPrompt (есть в виджете чата). */
 (function(){
-var AUD=["abroad", "accident", "acquaintance", "actually", "adjective", "advantage", "adverb", "agree", "although", "appear", "consequences", "cupboard", "enough", "glove"];
+var AUD=["abroad", "accident", "acquaintance", "actually", "adjective", "advantage", "adverb", "agree", "although", "am", "appear", "art", "ask", "assemble", "attempt", "attention", "automate", "awake", "award", "background", "bad", "badly", "basement", "bathroom", "beard", "being", "benefit", "bill", "block", "borrow", "box", "breath", "breathe", "bring", "buckwheat", "cast", "cause", "century", "certain", "charming", "chemist", "chemistry", "choice", "church", "clothes", "coast", "coat", "colleague", "comma", "conditions", "consequences", "control", "conversation", "cottage", "couple", "create", "cunning", "cupboard", "cure", "curtains", "date", "debt", "deceive", "definitely", "delay", "delicious", "describe", "destroy", "develop", "direct", "directed", "direction", "disappointed", "disgusting", "downstairs", "drive", "during", "each", "earlier", "earn", "enemy", "enjoy", "enough", "equipment", "especially", "glove"];
 var css='.g{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;padding:1rem 0}'+
 '.k{background:var(--surface-2);border:0.5px solid var(--border);border-radius:12px;padding:1rem 1.25rem}'+
 '.k.ok{border:2px solid var(--border-success);background:var(--bg-success)}'+
