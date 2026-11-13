@@ -17,7 +17,10 @@ root.innerHTML='<div class="t"><button id="all">Проверить все</butto
 var VOICE=null;
 function pickVoice(){try{var vs=speechSynthesis.getVoices().filter(function(v){return /^en[-_](GB|US)/i.test(v.lang)});var best=vs.filter(function(v){return /premium|enhanced/i.test(v.name)});VOICE=(best[0]||vs.filter(function(v){return /^en[-_]GB/i.test(v.lang)})[0]||vs[0])||null}catch(e){}}
 try{if(window.speechSynthesis){pickVoice();speechSynthesis.onvoiceschanged=pickVoice}}catch(e){}
-function say(t,auto){if(auto&&!AUTO)return;try{if(!window.speechSynthesis)return;var u=new SpeechSynthesisUtterance(t);if(VOICE){u.voice=VOICE;u.lang=VOICE.lang}else u.lang='en-GB';u.rate=0.9;speechSynthesis.cancel();speechSynthesis.speak(u)}catch(e){}}
+var AU={};
+function tts(t){try{if(!window.speechSynthesis)return;var u=new SpeechSynthesisUtterance(t);if(VOICE){u.voice=VOICE;u.lang=VOICE.lang}else u.lang='en-GB';u.rate=0.9;speechSynthesis.cancel();speechSynthesis.speak(u)}catch(e){}}
+function rec(w){w=w.toLowerCase();if(!/^[a-z'-]+$/.test(w))return Promise.resolve(null);if(w in AU)return Promise.resolve(AU[w]);return fetch('https://api.dictionaryapi.dev/api/v2/entries/en/'+encodeURIComponent(w)).then(function(r){return r.ok?r.json():[]}).then(function(d){var a=[];(d||[]).forEach(function(e){(e.phonetics||[]).forEach(function(p){if(p.audio)a.push(p.audio)})});var u=a.filter(function(x){return /-uk\.mp3$/.test(x)})[0]||a.filter(function(x){return /-us\.mp3$/.test(x)})[0]||a[0]||null;AU[w]=u;return u}).catch(function(){AU[w]=null;return null})}
+function say(t,auto){if(auto&&!AUTO)return;var w=String(t).trim();rec(w).then(function(u){if(!u){tts(w);return}try{var au=new Audio(u);au.play().catch(function(){tts(w)})}catch(e){tts(w)}})}
 function norm(t){return t.toLowerCase().replace(/[’`]/g,"'").replace(/\s+/g,' ').replace(/[.!?]+$/,'').trim()}
 function answers(e){var o=[norm(e)],p=e.split(/ \/ |, /);if(p.length>1)p.forEach(function(x){o.push(norm(x))});var m=e.match(/^(.*?)(\S+)\/(\S+)(.*)$/);if(m){[m[1]+m[2]+m[4],m[1]+m[3]+m[4],m[1]+m[3]+'/'+m[2]+m[4],m[1]+m[2]+' or '+m[3]+m[4],m[1]+m[2]+' and '+m[3]+m[4]].forEach(function(x){o.push(norm(x))})}return o}
 function noArt(t){return t.replace(/\b(a|an|the)\b/g,' ').replace(/\s+/g,' ').trim()}
@@ -37,7 +40,7 @@ function mk(x,par){var k=document.createElement('div');k.className='k';
  o.i.addEventListener('keydown',function(ev){if(ev.key==='Enter')chk(o)});
  k.querySelector('.sp').onclick=function(){say(x[2])};
  k.querySelector('.sh').onclick=function(){if(o.sh.textContent){o.sh.textContent=''}else{o.sh.textContent=x[2];say(x[2],1);if(!o.gaveUp){o.peekAt=o.tries;o.typed.push('[смотрел]')}o.gaveUp=true}};
- par.appendChild(k);C.push(o)}
+ par.appendChild(k);C.push(o);rec(String(x[2]).trim())}
 WL.forEach(function(x){if(Array.isArray(x[2])){var f=document.createElement('div');f.className='fam';var h=document.createElement('div');h.className='fh';h.textContent='№'+x[0]+' · семья слов';f.appendChild(h);x[2].forEach(function(e,j){mk([x[0]+'.'+(j+1),x[1][j],e],f)});g.appendChild(f)}else mk(x,g)});
 document.getElementById('all').onclick=function(){C.forEach(chk)};
 document.getElementById('send').onclick=function(){
