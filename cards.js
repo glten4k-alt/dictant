@@ -44,7 +44,7 @@ function mk(x,par){var k=document.createElement('div');k.className='k';
  var o={k:k,e:x[2],id:x[0],ru:x[1],i:k.querySelector('input'),m:k.querySelector('.m'),sh:k.querySelector('.e'),tries:0,typed:[],st:'',gaveUp:false,peekAt:-1};
  o.i.addEventListener('keydown',function(ev){if(ev.key==='Enter')chk(o)});o.i.addEventListener('input',save);
  k.querySelector('.sp').onclick=function(){say(x[2])};
- k.querySelector('.sh').onclick=function(){if(o.sh.textContent){o.sh.textContent=''}else{o.sh.textContent=x[2];say(x[2],1);if(!o.gaveUp){o.peekAt=o.tries;o.typed.push('[смотрел]')}o.gaveUp=true}save()};
+ k.querySelector('.sh').onclick=function(){if(o.sh.textContent){o.sh.textContent=''}else{if(o.i.value.trim()&&o.st!=='ok'&&o.typed[o.typed.length-1]!==o.i.value.trim())chk(o);o.sh.textContent=x[2];say(x[2],1);if(!o.gaveUp){o.peekAt=o.tries;o.typed.push('[смотрел]')}o.gaveUp=true}save()};
  var sv=SAVED[x[0]];if(sv){o.i.value=sv.v||'';o.tries=sv.t||0;o.typed=sv.y||[];o.st=sv.s||'';o.gaveUp=!!sv.g;o.peekAt=sv.p==null?-1:sv.p;if(sv.h)o.sh.textContent=x[2];if(o.st)o.k.className='k '+o.st;o.m.textContent=sv.m||''}
  par.appendChild(k);C.push(o);rec(String(x[2]).trim())}
 WL.forEach(function(x){if(Array.isArray(x[2])){var f=document.createElement('div');f.className='fam';var h=document.createElement('div');h.className='fh';h.textContent='№'+x[0]+' · семья слов';f.appendChild(h);x[2].forEach(function(e,j){mk([x[0]+'.'+(j+1),x[1][j],e],f)});g.appendChild(f)}else mk(x,g)});
