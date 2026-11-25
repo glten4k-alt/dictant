@@ -183,7 +183,9 @@ function isDue(x){var q=stat(x.id);return q.a>0&&q.due<=Date.now()}
 function record(id,ok,first,easy,near){var s=stat(id),b=s.b;
  if(ok){if(first&&s.a===0)b=easy?3:2;else if(first)b=Math.min(b+1,6);else b=1}else b=near?1:0;
  s.a++;if(ok){s.c++;s.s++}else{s.x++;s.s=0}
- var now=Date.now();P.w[id]=[s.a,s.c,s.x,now,s.s,b,now+INT[b]*DAY];queueSave()}
+ var now=Date.now(),lg=(P.w[id]&&P.w[id][7])||[];P.w[id]=[s.a,s.c,s.x,now,s.s,b,now+INT[b]*DAY,lg];queueSave()}
+// 25.11: журнал по слову — что писал при ошибке, «не знал», «было трудно» (последние 8 записей), идёт в «Весь прогресс»
+function logTry(id,txt){var w=P.w[id];if(!w)return;var d=new Date(),pad=function(n){return(n<10?'0':'')+n};var lg=w[7]||[];lg.push(pad(d.getDate())+'.'+pad(d.getMonth()+1)+' '+txt);if(lg.length>8)lg=lg.slice(-8);w[7]=lg;queueSave()}
 // 24.11: раньше верный ответ с исправлением опечатки не поднимал ящик. Разовая правка старых записей: серия 3+ верных подряд — ящик не ниже серии-1 (до 4).
 var CUT=1795537902000;function fixOld(){var ch=0;for(var k in P.w){var a=P.w[k],nb=Math.min(a[4]-1,4);if(a[3]<CUT&&a[4]>=3&&(a[5]||0)<nb){a[5]=nb;a[6]=a[3]+INT[nb]*DAY;ch=1}}if(ch)lsSet(P);return ch}
 function queueSave(){lsSet(P);clearTimeout(saveT);saveT=setTimeout(flush,500)}
@@ -303,7 +305,7 @@ function show(ok,given,near){
  acts(ok?[nextBtn,['Было трудно','button','ghost',markHard],spk]:[nextBtn,spk]);
  if(V.auto)speak(qs.cur.e);
 }
-function markHard(){var id=qs.cur.id,w=P.w[id];if(w){w[5]=1;w[6]=Date.now()+INT[1]*DAY;queueSave()}this.textContent='Отмечено, повтор завтра';this.disabled=true}
+function markHard(){var id=qs.cur.id,w=P.w[id];if(w){w[5]=1;w[6]=Date.now()+INT[1]*DAY;logTry(id,'[было трудно]')}this.textContent='Отмечено, повтор завтра';this.disabled=true}
 function giveUp(){if(qs.stage!=='ask')return;judge(false,true)}
 function judge(ok,gaveUp,near){
  var id=qs.cur.id,easy=ok&&qs.edits<=1;
@@ -311,6 +313,7 @@ function judge(ok,gaveUp,near){
  if(!ok&&!gaveUp){(qs.typed[id]=qs.typed[id]||[]).push($('ans').value.trim())}
  if(near&&!(id in qs.first)){(qs.nearIds=qs.nearIds||{})[id]=1}
  if(!(id in qs.first)){qs.first[id]=ok;record(id,ok,true,easy,!!near)}else{record(id,ok,false,false,!!near)}
+ if(!ok)logTry(id,gaveUp?'[не знал]':$('ans').value.trim());
  if(ok){qs.resolved++}else{qs.errs[id]=qs.cur;qs.queue.push(qs.cur)}
  show(ok,gaveUp,near);
 }
@@ -378,9 +381,9 @@ function copyText(t,m,okText){
 }
 $('copyAll').onclick=function(){
  var d=new Date(),pad=function(n){return(n<10?'0':'')+n};
- var L=['Весь прогресс на '+pad(d.getDate())+'.'+pad(d.getMonth()+1)+'.'+d.getFullYear()+'. Формат: №, слово, попыток, верно, ошибок, последняя дата, серия верных подряд, ящик (0–6), дата следующего повтора'];
+ var L=['Весь прогресс на '+pad(d.getDate())+'.'+pad(d.getMonth()+1)+'.'+d.getFullYear()+'. Формат: №, слово, попыток, верно, ошибок, последняя дата, серия верных подряд, ящик (0–6), дата следующего повтора, что писал при ошибках (последние 8)'];
  D.forEach(function(x){var s=stat(x.id);if(!s.a)return;var t=new Date(s.t);
-  var dd=new Date(s.due);L.push('№'+x.id+' '+x.e+' | '+s.a+' | '+s.c+' | '+s.x+' | '+pad(t.getDate())+'.'+pad(t.getMonth()+1)+' | '+s.s+' | ящик '+s.b+' | повтор '+pad(dd.getDate())+'.'+pad(dd.getMonth()+1))});
+  var dd=new Date(s.due);L.push('№'+x.id+' '+x.e+' | '+s.a+' | '+s.c+' | '+s.x+' | '+pad(t.getDate())+'.'+pad(t.getMonth()+1)+' | '+s.s+' | ящик '+s.b+' | повтор '+pad(dd.getDate())+'.'+pad(dd.getMonth()+1)+(P.w[x.id][7]&&P.w[x.id][7].length?' | писал: '+P.w[x.id][7].join('; '):''))});
  if(L.length===1)L.push('Пока нет ответов.');
  copyText(L.join('\n'),$('copyAllMsg'),'Скопировано. Вставь в чат с Claude.');
 };
