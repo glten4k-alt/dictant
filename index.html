@@ -181,7 +181,7 @@ function stat(id){var a=P.w[id];if(!a)return{a:0,c:0,x:0,t:0,s:0,b:0,due:0};
 function chatT(x){var m=/^(\d\d)\.(\d\d)/.exec(x.d||'');if(!m)return 0;var y=new Date().getFullYear(),t=new Date(y,+m[2]-1,+m[1]).getTime();if(t>Date.now()+30*DAY)t=new Date(y-1,+m[2]-1,+m[1]).getTime();return t}
 function isDue(x){var q=stat(x.id);return q.a>0&&q.due<=Date.now()}
 function record(id,ok,first,easy,near){var s=stat(id),b=s.b;
- if(ok){if(first&&s.a===0)b=easy?3:2;else if(first)b=Math.min(b+(easy?2:1),6);else b=1}else b=near?1:0; // 25.11: верно с первой попытки без исправлений — через ящик (+2)
+ if(ok){if(first&&s.a===0){var dx=D.filter(function(y){return y.id===id})[0];b=easy?(dx&&dx.st==='✅'?4:3):2} /* 25.11: слово ✅ из чата, впервые здесь и сразу чисто — 14 дней */ else if(first)b=Math.min(b+(easy?2:1),6);else b=1}else b=near?1:0; // 25.11: верно с первой попытки без исправлений — через ящик (+2)
  s.a++;if(ok){s.c++;s.s++}else{s.x++;s.s=0}
  var now=Date.now(),lg=(P.w[id]&&P.w[id][7])||[];P.w[id]=[s.a,s.c,s.x,now,s.s,b,now+INT[b]*DAY,lg];queueSave()}
 // 25.11: журнал по слову — что писал при ошибке, «не знал», «было трудно» (последние 8 записей), идёт в «Весь прогресс»
